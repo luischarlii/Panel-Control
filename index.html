@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel de usuarios</title>
+<style>
+  :root { --bg:#fff; --fg:#1a1a1a; --card:#f2f2f2; --accent:#0a7d4f; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#121212; --fg:#eee; --card:#1f1f1f; --accent:#3ddc97; } }
+  body { font-family: system-ui, sans-serif; background:var(--bg); color:var(--fg); margin:0; padding:24px; max-width:420px; margin-inline:auto; }
+  h1 { font-size:20px; }
+  input, button { font-size:16px; padding:10px; border-radius:8px; border:1px solid #888; width:100%; box-sizing:border-box; margin-bottom:10px; background:var(--bg); color:var(--fg); }
+  button { background:var(--accent); color:#fff; border:none; }
+  .card { background:var(--card); border-radius:12px; padding:16px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
+  .n { font-size:32px; font-weight:700; color:var(--accent); }
+  #msg { font-size:14px; opacity:.7; }
+</style>
+</head>
+<body>
+<h1>Usuarios activos</h1>
+<input id="clave" type="password" placeholder="Tu clave">
+<button id="ver">Ver conteo</button>
+<div class="card"><span>La Despensa</span><span class="n" id="despensa">–</span></div>
+<div class="card"><span>Radio</span><span class="n" id="radio">–</span></div>
+<div id="msg">Activos en los últimos ~5 minutos.</div>
+<script>
+  const WORKER = "https://presencia.paraguglear.workers.dev/count";
+  const $ = (id) => document.getElementById(id);
+  try { $("clave").value = localStorage.getItem("clave_panel") || ""; } catch (e) {}
+
+  async function ver() {
+    const clave = $("clave").value;
+    try {
+      const r = await fetch(WORKER, { headers: { Authorization: "Bearer " + clave } });
+      if (!r.ok) { $("msg").textContent = "Clave incorrecta."; return; }
+      const d = await r.json();
+      $("despensa").textContent = d.despensa;
+      $("radio").textContent = d.radio;
+      $("msg").textContent = "Activos en los últimos ~5 minutos.";
+      try { localStorage.setItem("clave_panel", clave); } catch (e) {}
+    } catch (e) {
+      $("msg").textContent = "No se pudo conectar.";
+    }
+  }
+  $("ver").addEventListener("click", ver);
+</script>
+</body>
+</html>
