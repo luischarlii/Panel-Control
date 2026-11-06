@@ -1,49 +1,142 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Panel de usuarios</title>
+<title>Panel de control</title>
 <style>
-  :root { --bg:#fff; --fg:#1a1a1a; --card:#f2f2f2; --accent:#0a7d4f; }
-  @media (prefers-color-scheme: dark) { :root { --bg:#121212; --fg:#eee; --card:#1f1f1f; --accent:#3ddc97; } }
-  body { font-family: system-ui, sans-serif; background:var(--bg); color:var(--fg); margin:0; padding:24px; max-width:420px; margin-inline:auto; }
-  h1 { font-size:20px; }
-  input, button { font-size:16px; padding:10px; border-radius:8px; border:1px solid #888; width:100%; box-sizing:border-box; margin-bottom:10px; background:var(--bg); color:var(--fg); }
-  button { background:var(--accent); color:#fff; border:none; }
-  .card { background:var(--card); border-radius:12px; padding:16px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
-  .n { font-size:32px; font-weight:700; color:var(--accent); }
-  #msg { font-size:14px; opacity:.7; }
+:root{color-scheme:light dark;--bg:#f1f4f7;--card:#fff;--tx:#14202b;--mut:#5d6b78;--ln:#d9e0e6;--ac:#3446c4;--err:#b3261e;
+--c1:#3446c4;--c2:#d9822b;--c3:#2a9d8f;--c4:#a23b72}
+@media(prefers-color-scheme:dark){:root{--bg:#0e151c;--card:#16202a;--tx:#e8eef3;--mut:#93a2b0;--ln:#273543;--ac:#7f8ff0;--err:#f2958f;
+--c1:#7f8ff0;--c2:#f0a85c;--c3:#5cc4b6;--c4:#d77fae}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,sans-serif;
+padding:max(16px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom))}
+main{max-width:760px;margin:0 auto}
+h1{font-size:1.4rem;margin:0}h2{font-size:1.05rem;margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:16px;margin-bottom:14px}
+.muted{color:var(--mut);font-size:.9rem}
+input,button{font:inherit;border-radius:8px}
+input{width:100%;padding:12px;border:1px solid var(--ln);background:var(--bg);color:var(--tx);margin:10px 0}
+button{padding:10px 16px;border:0;background:var(--ac);color:#fff;cursor:pointer}
+button.sec{background:transparent;color:var(--tx);border:1px solid var(--ln)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+#login{max-width:380px;margin:12vh auto 0}
+#login button{width:100%}
+.err{color:var(--err);min-height:1.4em;margin:6px 0 0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+.top div{display:flex;gap:8px}
+.res{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+@media(min-width:560px){.res{grid-template-columns:repeat(4,1fr)}}
+.res div{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:12px}
+.res b{display:block;font-size:1.8rem;line-height:1.1}
+.fila{display:grid;grid-template-columns:96px 1fr 36px;align-items:center;gap:10px;margin:10px 0}
+.barra{height:12px;background:var(--bg);border-radius:6px;overflow:hidden}
+.barra i{display:block;height:100%;border-radius:6px}
+.fila span:last-child{text-align:right;font-weight:600}
+.tabla{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:430px}
+th,td{padding:8px;text-align:right;border-bottom:1px solid var(--ln)}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:600;color:var(--mut);font-size:.88rem}
+td.t{font-weight:700}tr.hoy td{background:color-mix(in srgb,var(--ac) 10%,transparent)}
+.punto{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+[hidden]{display:none!important}
 </style>
 </head>
 <body>
-<h1>Usuarios activos</h1>
-<input id="clave" type="password" placeholder="Tu clave">
-<button id="ver">Ver conteo</button>
-<div class="card"><span>La Despensa</span><span class="n" id="despensa">–</span></div>
-<div class="card"><span>Radio</span><span class="n" id="radio">–</span></div>
-<div id="msg">Activos en los últimos ~5 minutos.</div>
-<script>
-  const WORKER = "https://presencia.paragugliar.workers.dev/count";
-  const $ = (id) => document.getElementById(id);
-  try { $("clave").value = localStorage.getItem("clave_panel") || ""; } catch (e) {}
+<main>
 
-  async function ver() {
-    const clave = $("clave").value;
-    try {
-      const r = await fetch(WORKER, { headers: { Authorization: "Bearer " + clave } });
-      if (!r.ok) { $("msg").textContent = "Clave incorrecta."; return; }
-      const d = await r.json();
-      $("despensa").textContent = d.despensa;
-      $("radio").textContent = d.radio;
-      $("msg").textContent = "Activos en los últimos ~5 minutos.";
-      try { localStorage.setItem("clave_panel", clave); } catch (e) {}
-    } catch (e) {
-      $("msg").textContent = "No se pudo conectar.";
-    }
+<section id="login" class="card">
+  <h1>Panel de control</h1>
+  <p class="muted">Escribe la contraseña del Worker para ver los datos.</p>
+  <form id="form">
+    <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password" required>
+    <button type="submit">Entrar</button>
+  </form>
+  <p class="err" id="err" role="alert"></p>
+</section>
+
+<section id="panel" hidden>
+  <div class="top">
+    <h1>Panel de control</h1>
+    <div>
+      <button class="sec" id="actualizar">Actualizar</button>
+      <button class="sec" id="salir">Salir</button>
+    </div>
+  </div>
+  <div class="res" id="res"></div>
+  <div class="card"><h2>Hoy por app</h2><div id="hoyapps"></div></div>
+  <div class="card"><h2>Últimos 30 días</h2>
+    <div class="tabla"><table id="tabla"></table></div>
+    <p class="muted">Cada número es la cantidad de dispositivos distintos que abrieron la app ese día. Los totales de varios días suman esos números.</p>
+  </div>
+</section>
+
+</main>
+<script>
+// Cambia esta dirección por la de tu Worker (sin /ping ni /stats al final)
+var WORKER_URL = "https://TU-WORKER.workers.dev";
+var COLORES = ["var(--c1)","var(--c2)","var(--c3)","var(--c4)"];
+var NOMBRES = {despensa:"La Despensa",radio:"Radio",passwords:"Passwords",cotizacion:"Cotización"};
+var $ = function(id){return document.getElementById(id);};
+
+function fechaHoy(){return new Intl.DateTimeFormat("en-CA",{timeZone:"America/Mexico_City"}).format(new Date());}
+function restaDias(f,n){var d=new Date(f+"T00:00:00Z");d.setUTCDate(d.getUTCDate()-n);return d.toISOString().slice(0,10);}
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function nombre(a){return NOMBRES[a]||a;}
+
+async function cargar(clave){
+  var r = await fetch(WORKER_URL+"/api/stats?clave="+encodeURIComponent(clave));
+  if(r.status===401) throw new Error("La contraseña es incorrecta.");
+  if(!r.ok) throw new Error("El Worker respondió con error ("+r.status+").");
+  return r.json();
+}
+
+function pintar(d){
+  var dias={};
+  d.porApp.forEach(function(x){(dias[x.dia]=dias[x.dia]||{})[x.app]=x.n;});
+  var hoy=fechaHoy(), ayer=restaDias(hoy,1);
+  function total(f){return d.apps.reduce(function(s,a){return s+((dias[f]||{})[a]||0);},0);}
+  function suma(n){var s=0;for(var i=0;i<n;i++)s+=total(restaDias(hoy,i));return s;}
+
+  $("res").innerHTML=[["Hoy",total(hoy)],["Ayer",total(ayer)],["7 días",suma(7)],["30 días",suma(30)]]
+    .map(function(x){return "<div><b>"+x[1]+"</b><span class='muted'>"+x[0]+"</span></div>";}).join("");
+
+  var max=Math.max(1,Math.max.apply(null,d.apps.map(function(a){return (dias[hoy]||{})[a]||0;})));
+  $("hoyapps").innerHTML=d.apps.map(function(a,i){
+    var n=(dias[hoy]||{})[a]||0;
+    return "<div class='fila'><span><i class='punto' style='background:"+COLORES[i%4]+"'></i>"+esc(nombre(a))+"</span>"+
+      "<span class='barra'><i style='width:"+(n/max*100)+"%;background:"+COLORES[i%4]+"'></i></span><span>"+n+"</span></div>";
+  }).join("");
+
+  var fechas=[];for(var k=0;k<30;k++)fechas.push(restaDias(hoy,k));
+  var h="<tr><th>Día</th>"+d.apps.map(function(a){return "<th>"+esc(nombre(a))+"</th>";}).join("")+"<th>Total</th></tr>";
+  fechas.forEach(function(f){
+    h+="<tr"+(f===hoy?" class='hoy'":"")+"><td>"+f+"</td>"+
+      d.apps.map(function(a){return "<td>"+(((dias[f]||{})[a])||0)+"</td>";}).join("")+
+      "<td class='t'>"+total(f)+"</td></tr>";
+  });
+  $("tabla").innerHTML=h;
+}
+
+async function entrar(clave){
+  $("err").textContent="";
+  try{
+    var d=await cargar(clave);
+    try{sessionStorage.setItem("clave",clave);}catch(e){}
+    $("login").hidden=true;$("panel").hidden=false;
+    pintar(d);
+  }catch(e){
+    $("err").textContent=(e instanceof TypeError)?"No se pudo conectar. Revisa la dirección del Worker en este archivo.":e.message;
+    $("login").hidden=false;$("panel").hidden=true;
   }
-  $("ver").addEventListener("click", ver);
+}
+
+$("form").addEventListener("submit",function(ev){ev.preventDefault();entrar($("clave").value.trim());});
+$("actualizar").addEventListener("click",function(){var c=null;try{c=sessionStorage.getItem("clave");}catch(e){}if(c)entrar(c);});
+$("salir").addEventListener("click",function(){try{sessionStorage.removeItem("clave");}catch(e){}$("clave").value="";$("panel").hidden=true;$("login").hidden=false;});
+try{var g=sessionStorage.getItem("clave");if(g)entrar(g);}catch(e){}
 </script>
 </body>
 </html>
